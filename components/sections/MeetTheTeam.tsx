@@ -83,7 +83,7 @@ export default function MeetTheTeam() {
                     {firstRowMembers.map((member) => (
                       <div
                         key={member.id}
-                        className="group flex flex-col bg-stone-900 border border-white/10 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300"
+                        className="group relative bg-stone-900 border border-white/10 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300"
                       >
                         <div className="relative aspect-square overflow-hidden w-full">
                           <Image
@@ -94,25 +94,15 @@ export default function MeetTheTeam() {
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             className="object-cover group-hover:scale-105 transition-transform duration-500"
                           />
-                          {/* Desktop Gradient Overlay & Member Name/Role */}
-                          <div className="hidden lg:flex absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-col justify-end p-5 text-white">
-                            <h4 className="font-serif text-lg font-bold text-white leading-tight">
+                          {/* Permanent Bottom Gradient Overlay & Member Name/Role */}
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent pt-14 pb-5 px-5 flex flex-col justify-end text-white">
+                            <h4 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight">
                               {member.name}
                             </h4>
-                            <p className="font-mono text-[11px] text-[#C8B195] uppercase tracking-wider mt-1.5">
+                            <p className="font-mono text-xs text-[#C8B195] uppercase tracking-wider mt-1.5 font-medium">
                               {member.role}
                             </p>
                           </div>
-                        </div>
-                        
-                        {/* Mobile Text (Visible only below lg breakpoint) */}
-                        <div className="lg:hidden p-5 bg-stone-900 flex flex-col justify-center text-center">
-                          <h4 className="font-serif text-xl font-bold text-white leading-tight">
-                            {member.name}
-                          </h4>
-                          <p className="font-mono text-xs font-bold text-[#C8B195] uppercase tracking-wider mt-1.5">
-                            {member.role}
-                          </p>
                         </div>
                       </div>
                     ))}
@@ -125,7 +115,7 @@ export default function MeetTheTeam() {
                     {secondRowMembers.map((member) => (
                       <div
                         key={member.id}
-                        className="group flex flex-col bg-stone-900 border border-white/10 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300"
+                        className="group relative bg-stone-900 border border-white/10 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300"
                       >
                         <div className="relative aspect-square overflow-hidden w-full">
                           <Image
@@ -136,25 +126,15 @@ export default function MeetTheTeam() {
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             className="object-cover group-hover:scale-105 transition-transform duration-500"
                           />
-                          {/* Desktop Gradient Overlay & Member Name/Role */}
-                          <div className="hidden lg:flex absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-col justify-end p-5 text-white">
-                            <h4 className="font-serif text-lg font-bold text-white leading-tight">
+                          {/* Permanent Bottom Gradient Overlay & Member Name/Role */}
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent pt-14 pb-5 px-5 flex flex-col justify-end text-white">
+                            <h4 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight">
                               {member.name}
                             </h4>
-                            <p className="font-mono text-[11px] text-[#C8B195] uppercase tracking-wider mt-1.5">
+                            <p className="font-mono text-xs text-[#C8B195] uppercase tracking-wider mt-1.5 font-medium">
                               {member.role}
                             </p>
                           </div>
-                        </div>
-                        
-                        {/* Mobile Text (Visible only below lg breakpoint) */}
-                        <div className="lg:hidden p-5 bg-stone-900 flex flex-col justify-center text-center">
-                          <h4 className="font-serif text-xl font-bold text-white leading-tight">
-                            {member.name}
-                          </h4>
-                          <p className="font-mono text-xs font-bold text-[#C8B195] uppercase tracking-wider mt-1.5">
-                            {member.role}
-                          </p>
                         </div>
                       </div>
                     ))}
