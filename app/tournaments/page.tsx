@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { apiRequest } from '@/lib/api';
 import { Tournament } from '@/types';
-import { Calendar, MapPin, Loader2, CheckCircle2, User, Trophy, FileText } from 'lucide-react';
+import { Calendar, MapPin, Loader2, CheckCircle2, User, Trophy, FileText, Printer, RefreshCw, AlertTriangle } from 'lucide-react';
 
 const TOURNAMENT_CONFIGS = [
   { image: '/images/kids.jpg', isDark: false },
@@ -549,7 +549,8 @@ export default function TournamentsPage() {
                           onClick={() => window.print()}
                           className="flex-1 py-3.5 bg-stone-200 hover:bg-stone-300 text-[#2A2421] font-sans text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-2"
                         >
-                          <span>🖨️ Print / Save Pass</span>
+                          <Printer className="w-4 h-4" />
+                          <span>Print / Save Pass</span>
                         </button>
                         <button
                           type="button"
@@ -575,7 +576,7 @@ export default function TournamentsPage() {
                         {statusMessage.type === 'pending' ? (
                           <Loader2 className="w-5 h-5 animate-spin text-amber-700" />
                         ) : (
-                          <span className="text-xl">⚠️</span>
+                          <AlertTriangle className="w-5 h-5 text-red-600" />
                         )}
                         <h4 className="font-bold text-sm">
                           {statusMessage.type === 'pending' ? 'M-Pesa STK Prompt Dispatched' : 'Payment Error'}
@@ -588,9 +589,10 @@ export default function TournamentsPage() {
                           <button
                             type="button"
                             onClick={() => checkPaymentStatus(checkoutRequestId)}
-                            className="w-full py-2.5 bg-amber-700 hover:bg-amber-800 text-white font-sans text-xs font-bold rounded-xl transition-all shadow-sm"
+                            className="w-full py-2.5 bg-amber-700 hover:bg-amber-800 text-white font-sans text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center space-x-2"
                           >
-                            🔄 Re-check Payment Status Now
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            <span>Re-check Payment Status Now</span>
                           </button>
                         </div>
                       )}
@@ -776,7 +778,7 @@ export default function TournamentsPage() {
                     <div className="bg-[#FAF7F2] border border-[#C8B195]/50 rounded-2xl p-4 space-y-3 text-xs text-stone-700">
                       <div className="flex items-center justify-between border-b border-[#C8B195]/30 pb-2">
                         <span className="font-serif font-bold text-[#6B4A34] text-xs uppercase tracking-wider">
-                          📜 Official Tournament Policy
+                          Official Tournament Policy
                         </span>
                         <span className="text-[10px] font-mono text-stone-500 font-bold">
                           FIDE & Grand Prix Regulations

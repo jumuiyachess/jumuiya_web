@@ -42,6 +42,7 @@ const MENU_GROUPS = [
       { name: 'Blog & News', href: '/admin/dashboard/blog', icon: BookOpen },
       { name: 'Videos & Streams', href: '/admin/dashboard/videos', icon: Youtube },
       { name: 'How It Started', href: '/admin/dashboard/how-it-started', icon: BookOpen },
+      { name: 'Terms & Policies', href: '/admin/dashboard/policies', icon: ShieldCheck },
     ]
   },
   {

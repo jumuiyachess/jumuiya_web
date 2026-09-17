@@ -158,3 +158,33 @@ export interface Video {
   is_featured: boolean;
   created_at?: string;
 }
+
+export interface PolicySection {
+  title: string;
+  content: string;
+}
+
+export interface SitePolicy {
+  id: string;
+  title: string;
+  subtitle?: string;
+  lead_text?: string;
+  content?: string;
+  sections: PolicySection[];
+  updated_at?: string;
+}
+
+export interface Donation {
+  id: string;
+  donor_name?: string;
+  email?: string;
+  phone_number: string;
+  amount: number;
+  donor_message?: string;
+  payment_channel: string;
+  payment_status: 'pending' | 'completed' | 'failed';
+  checkout_request_id?: string;
+  mpesa_receipt?: string;
+  created_at: string;
+}
+

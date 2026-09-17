@@ -1,8 +1,53 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
-export default function PrivacyPolicyPage() {
+export const revalidate = 60;
+
+const DEFAULT_PRIVACY_SECTIONS = [
+  {
+    title: '1. Information We Collect',
+    content: 'We only collect information about you if we have a reason to do so. This typically includes personal details (name, email, phone number), transaction information processed securely via M-Pesa, and tournament data (FIDE IDs, ratings, and performance metrics).'
+  },
+  {
+    title: '2. How We Use Information',
+    content: 'We use the information we collect to process transactions and deliver store purchases, organize and communicate details about chess tournaments, improve our community offerings, and send administrative updates.'
+  },
+  {
+    title: '3. Sharing Information',
+    content: 'We do not sell our users personal information. We may share data with service providers (e.g. Safaricom M-Pesa), chess federations (FIDE / Chess Kenya for rating purposes), or as required by law.'
+  },
+  {
+    title: '4. Media Release',
+    content: 'By attending a Jumuiya Chess event, you grant us the right to take photographs and video recordings for promotional and documentation purposes on our website and social media channels.'
+  },
+  {
+    title: '5. Your Rights',
+    content: 'You have the right to request access to the personal data we hold about you, or request its deletion. Contact us if you have any questions.'
+  }
+];
+
+export default async function PrivacyPolicyPage() {
+  let policy: any = null;
+  try {
+    const { data } = await supabaseAdmin
+      .from('site_policies')
+      .select('*')
+      .eq('id', 'privacy')
+      .maybeSingle();
+    policy = data;
+  } catch (e) {
+    // Graceful fallback to static defaults
+  }
+
+  const title = policy?.title || 'Privacy Policy';
+  const subtitle = policy?.subtitle || '';
+  const leadText = policy?.lead_text || 'Your privacy is critically important to us. This Privacy Policy explains what information we collect, why we collect it, and how we protect your personal data at the Jumuiya Chess Initiative.';
+  const sections = policy?.sections && Array.isArray(policy.sections) && policy.sections.length > 0
+    ? policy.sections
+    : DEFAULT_PRIVACY_SECTIONS;
+
   return (
     <div className="min-h-screen bg-[#FAF7F2] py-16 px-4 md:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -12,41 +57,28 @@ export default function PrivacyPolicyPage() {
         </Link>
         
         <div className="bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-[#6B4A34]/10">
-          <h1 className="font-serif text-3xl md:text-5xl font-bold text-[#232320] mb-8">Privacy Policy</h1>
+          <div className="space-y-2 mb-8">
+            <h1 className="font-serif text-3xl md:text-5xl font-bold text-[#232320]">{title}</h1>
+            {subtitle && (
+              <p className="font-mono text-xs text-[#6B4A34] font-semibold uppercase tracking-wider">{subtitle}</p>
+            )}
+          </div>
           
-          <div className="prose prose-stone max-w-none font-sans text-[#232320]/80">
-            <p className="lead text-lg">Your privacy is critically important to us. This Privacy Policy explains what information we collect, why we collect it, and how we protect your personal data at the Jumuiya Chess Initiative.</p>
+          <div className="prose prose-stone max-w-none font-sans text-[#232320]/80 space-y-6">
+            {leadText && (
+              <p className="lead text-lg text-stone-700 leading-relaxed">{leadText}</p>
+            )}
             
-            <h2 className="font-serif text-2xl font-bold text-[#6B4A34] mt-8 mb-4">1. Information We Collect</h2>
-            <p>We only collect information about you if we have a reason to do so. This typically includes:</p>
-            <ul>
-              <li><strong>Personal details:</strong> Such as your name, email address, and phone number when you register for a tournament or purchase a product from our store.</li>
-              <li><strong>Transaction information:</strong> Payment details processed securely via M-Pesa. We do not store your full financial data or PINs on our servers.</li>
-              <li><strong>Tournament data:</strong> FIDE IDs, ratings, and performance metrics necessary for organizing and reporting chess events.</li>
-            </ul>
-            
-            <h2 className="font-serif text-2xl font-bold text-[#6B4A34] mt-8 mb-4">2. How We Use Information</h2>
-            <p>We use the information we collect to:</p>
-            <ul>
-              <li>Process transactions and deliver store purchases.</li>
-              <li>Organize and communicate details about upcoming chess tournaments.</li>
-              <li>Improve our website, events, and community offerings.</li>
-              <li>Send you administrative messages or important updates.</li>
-            </ul>
-            
-            <h2 className="font-serif text-2xl font-bold text-[#6B4A34] mt-8 mb-4">3. Sharing Information</h2>
-            <p>We do not sell our users' private personal information. We may share information with limited third parties only under these circumstances:</p>
-            <ul>
-              <li><strong>Service Providers:</strong> Payment processors like Safaricom (M-Pesa) necessary to facilitate transactions.</li>
-              <li><strong>Legal Compliance:</strong> If required by law or to protect the rights and safety of Jumuiya Chess and its members.</li>
-              <li><strong>FIDE / Chess Federations:</strong> Tournament results and names may be reported for official rating purposes.</li>
-            </ul>
-            
-            <h2 className="font-serif text-2xl font-bold text-[#6B4A34] mt-8 mb-4">4. Media Release</h2>
-            <p>By attending a Jumuiya Chess event, you grant us the right to take photographs and video recordings. You agree that we may use such media for promotional and documentation purposes on our website and social media channels.</p>
-            
-            <h2 className="font-serif text-2xl font-bold text-[#6B4A34] mt-8 mb-4">5. Your Rights</h2>
-            <p>You have the right to request access to the personal data we hold about you, or request its deletion. If you have any questions about this Privacy Policy, please contact us.</p>
+            {sections.map((section: any, idx: number) => (
+              <div key={idx} className="space-y-2">
+                <h2 className="font-serif text-xl md:text-2xl font-bold text-[#6B4A34] pt-4">
+                  {section.title}
+                </h2>
+                <p className="text-stone-700 leading-relaxed whitespace-pre-line text-sm md:text-base">
+                  {section.content}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

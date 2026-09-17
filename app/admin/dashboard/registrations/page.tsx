@@ -3,12 +3,23 @@
 import { useState, useEffect } from 'react';
 import { apiRequest } from '@/lib/api';
 import { Registration, Tournament } from '@/types';
-import { Loader2, ShieldCheck, ShieldAlert, Award, Printer, Download, Trash2 } from 'lucide-react';
+import { Loader2, ShieldCheck, ShieldAlert, Award, Printer, Download, Trash2, Eye, School, User, Mail, Phone, X, Copy } from 'lucide-react';
+import { calculateAge } from '@/lib/bulkRegistration';
 
 export default function AdminRegistrations() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPlayer, setSelectedPlayer] = useState<Registration | null>(null);
+
+  const getPlayerAge = (reg: Registration) => {
+    if (reg.age && reg.age > 0) return reg.age;
+    if (reg.date_of_birth) {
+      const computed = calculateAge(reg.date_of_birth);
+      if (computed > 0) return computed;
+    }
+    return '—';
+  };
 
   // Filters State
   const [selectedTournamentId, setSelectedTournamentId] = useState('');
@@ -123,16 +134,44 @@ export default function AdminRegistrations() {
   };
 
   const exportCsv = () => {
-    const headers = ['Player Name', 'Tournament', 'Age', 'Category', 'Phone', 'Amount (KES)', 'Status', 'M-Pesa Receipt', 'Date'];
+    const headers = [
+      'Player Name',
+      'School / Club',
+      'Tournament',
+      'Category',
+      'Age',
+      'Date of Birth',
+      'Gender',
+      'FIDE ID',
+      'Country',
+      'Patron / Guardian',
+      'Phone',
+      'Email',
+      'Amount (KES)',
+      'Status',
+      'M-Pesa Receipt',
+      'Ticket Number',
+      'Attendance',
+      'Registered Date'
+    ];
     const rows = registrations.map((r) => [
       `"${r.player_name}"`,
+      `"${r.school || 'Individual'}"`,
       `"${Array.isArray(r.tournaments) ? r.tournaments[0]?.name : (typeof r.tournaments === 'object' && r.tournaments ? r.tournaments.name : 'Tournament')}"`,
-      r.age,
       `"${r.category}"`,
+      getPlayerAge(r),
+      `"${r.date_of_birth || ''}"`,
+      `"${r.gender || ''}"`,
+      `"${r.fide_id || '00'}"`,
+      `"${r.country || 'Kenya'}"`,
+      `"${r.accompanying_person || ''}"`,
       `"${r.phone_number}"`,
+      `"${r.email || ''}"`,
       r.amount,
       r.payment_status,
       `"${r.mpesa_receipt || ''}"`,
+      `"${r.ticket_number || ''}"`,
+      r.attendance_status || 'registered',
       `"${r.created_at ? new Date(r.created_at).toLocaleString() : ''}"`,
     ]);
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
@@ -257,42 +296,60 @@ export default function AdminRegistrations() {
         {/* Roster Table */}
         <table className="w-full text-left border-collapse text-[10px] font-sans">
           <thead>
-            <tr className="bg-[#6B4A34] text-white uppercase tracking-wider">
-              <th className="py-2.5 px-3 font-bold rounded-tl-sm w-12">#</th>
-              <th className="py-2.5 px-3 font-bold">Player Name</th>
-              <th className="py-2.5 px-3 font-bold">Profile</th>
-              <th className="py-2.5 px-3 font-bold">FIDE / Country</th>
-              <th className="py-2.5 px-3 font-bold">Category</th>
-              <th className="py-2.5 px-3 font-bold">Payment</th>
-              <th className="py-2.5 px-3 font-bold text-center rounded-tr-sm w-20">Check-In</th>
+            <tr className="bg-[#6B4A34] text-white uppercase tracking-wider text-[9px]">
+              <th className="py-2 px-2 font-bold rounded-tl-sm w-7">#</th>
+              <th className="py-2 px-2.5 font-bold w-[25%]">Player & School</th>
+              <th className="py-2 px-2 font-bold w-[16%]">Category</th>
+              <th className="py-2 px-2 font-bold w-[16%]">Age & DOB</th>
+              <th className="py-2 px-2 font-bold w-[15%]">FIDE & Origin</th>
+              <th className="py-2 px-2 font-bold w-[18%]">Payment & Contact</th>
+              <th className="py-2 px-2 font-bold text-center rounded-tr-sm w-10">Check-In</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-200 border-b border-stone-300">
             {registrations.map((reg, index) => (
               <tr key={reg.id} className="even:bg-stone-50 transition-colors">
-                <td className="py-2.5 px-3 font-mono text-stone-500 text-[10px] align-middle">{index + 1}</td>
-                <td className="py-2.5 px-3 font-bold text-[11px] text-[#232320] uppercase align-middle">
-                  {reg.player_name}
+                <td className="py-2 px-2 font-mono text-stone-500 text-[10px] align-middle">{index + 1}</td>
+                <td className="py-2 px-2.5 align-middle">
+                  <span className="block font-bold text-[11px] text-[#232320] uppercase">{reg.player_name}</span>
+                  {reg.school && (
+                    <span className="block text-[9px] text-[#6B4A34] font-semibold">{reg.school}</span>
+                  )}
                   {reg.ticket_number && (
-                    <span className="block font-mono text-[9px] text-stone-400 font-normal mt-0.5">TK: {reg.ticket_number}</span>
+                    <span className="block font-mono text-[8px] text-stone-400 font-normal">TK: {reg.ticket_number}</span>
                   )}
                 </td>
-                <td className="py-2.5 px-3 text-stone-700 align-middle">
-                  <span className="block font-semibold">Age: {reg.age}</span>
-                  <span className="block text-[9px] uppercase tracking-wider">{reg.gender || '—'}</span>
+                <td className="py-2 px-2 font-bold text-[#6B4A34] align-middle text-[9px] leading-tight">
+                  {reg.category}
                 </td>
-                <td className="py-2.5 px-3 font-mono text-stone-700 align-middle">
-                  <span className="block font-bold">{reg.fide_id || 'N/A'}</span>
-                  <span className="block text-[9px] uppercase font-sans tracking-wider">{reg.country || 'KENYA'}</span>
+                <td className="py-2 px-2 text-stone-700 align-middle">
+                  <span className="block font-semibold">Age: {getPlayerAge(reg)} • {reg.gender || '—'}</span>
+                  {reg.date_of_birth && (
+                    <span className="block font-mono text-[8px] text-stone-500">DOB: {reg.date_of_birth}</span>
+                  )}
                 </td>
-                <td className="py-2.5 px-3 font-bold text-[#6B4A34] align-middle">{reg.category}</td>
-                <td className="py-2.5 px-3 align-middle">
-                  <span className={`font-bold ${reg.payment_status === 'completed' ? 'text-emerald-700' : 'text-rose-700'}`}>
+                <td className="py-2 px-2 font-mono text-stone-700 align-middle">
+                  <span className="block font-bold text-[10px]">{reg.fide_id || '00'}</span>
+                  <span className="block text-[8px] uppercase font-sans tracking-wider text-stone-500">{reg.country || 'KENYA'}</span>
+                  {reg.accompanying_person && (
+                    <span className="block text-[8px] text-stone-500 font-sans italic truncate max-w-[100px]" title={reg.accompanying_person}>
+                      P: {reg.accompanying_person}
+                    </span>
+                  )}
+                </td>
+                <td className="py-2 px-2 align-middle">
+                  <span className={`font-bold text-[10px] ${reg.payment_status === 'completed' ? 'text-emerald-700' : 'text-rose-700'}`}>
                     {reg.payment_status === 'completed' ? 'PAID' : reg.payment_status.toUpperCase()}
                   </span>
-                  {reg.amount && <span className="block text-[9px] text-stone-500 font-mono">KES {reg.amount}</span>}
+                  <span className="text-stone-600 font-mono text-[9px] ml-1">
+                    {reg.amount === 0 ? 'FREE' : `KES ${reg.amount}`}
+                  </span>
+                  {reg.mpesa_receipt && (
+                    <span className="block font-mono text-[8px] text-stone-500">{reg.mpesa_receipt}</span>
+                  )}
+                  <span className="block font-mono text-[8px] text-stone-500">{reg.phone_number}</span>
                 </td>
-                <td className="py-2.5 px-3 text-center align-middle">
+                <td className="py-2 px-2 text-center align-middle">
                   <div className="w-5 h-5 border-[1.5px] border-[#6B4A34] rounded-sm mx-auto flex items-center justify-center bg-white shadow-inner">
                     {reg.attendance_status === 'checked-in' && <span className="text-[#6B4A34] font-black text-sm block leading-none -mt-0.5">✓</span>}
                   </div>
@@ -430,7 +487,22 @@ export default function AdminRegistrations() {
               <tbody className="divide-y divide-[#6B4A34]/10">
                 {registrations.map((reg) => (
                   <tr key={reg.id} className="text-[#232320] hover:bg-[#FAF7F2] transition-colors">
-                    <td className="py-3.5 font-bold">{reg.player_name}</td>
+                    <td className="py-3.5">
+                      <button
+                        onClick={() => setSelectedPlayer(reg)}
+                        className="text-left group/name font-bold hover:text-[#6B4A34] transition-colors block max-w-[200px]"
+                      >
+                        <span className="block text-xs font-bold text-[#232320] group-hover/name:text-[#6B4A34]">{reg.player_name}</span>
+                        {reg.school ? (
+                          <span className="inline-flex items-center space-x-1 text-[10px] text-stone-500 font-normal mt-0.5" title={reg.school}>
+                            <School className="w-3 h-3 text-[#6B4A34]/70 shrink-0" />
+                            <span className="truncate max-w-[150px]">{reg.school}</span>
+                          </span>
+                        ) : (
+                          <span className="block text-[10px] text-stone-400 font-normal">Individual</span>
+                        )}
+                      </button>
+                    </td>
                     <td className="py-3.5 text-[#232320]/70">
                       {Array.isArray(reg.tournaments)
                         ? reg.tournaments[0]?.name
@@ -438,7 +510,7 @@ export default function AdminRegistrations() {
                     </td>
                     <td className="py-3.5">
                       <div className="flex flex-col gap-1">
-                        <span className="text-[10px] text-[#232320]/70">Age: {reg.age}</span>
+                        <span className="text-[10px] text-[#232320]/70">Age: {getPlayerAge(reg)}</span>
                         <span className="text-[10px] text-[#232320]/70">{reg.gender || '—'}</span>
                       </div>
                     </td>
@@ -487,17 +559,26 @@ export default function AdminRegistrations() {
                       {reg.created_at ? new Date(reg.created_at).toLocaleDateString() : '—'}
                     </td>
                     <td className="py-3.5 text-right">
-                      {reg.ticket_number && (
-                        <a 
-                          href={`/tickets/${reg.ticket_number}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center justify-center p-2 bg-[#FAF7F2] text-[#6B4A34] hover:bg-[#6B4A34] hover:text-white rounded-lg transition-colors border border-[#6B4A34]/20 shadow-sm"
-                          title="View/Print Ticket"
+                      <div className="flex items-center justify-end space-x-1.5">
+                        <button
+                          onClick={() => setSelectedPlayer(reg)}
+                          className="inline-flex items-center justify-center p-2 bg-[#FAF7F2] text-[#6B4A34] hover:bg-[#6B4A34] hover:text-white rounded-lg transition-colors border border-[#6B4A34]/20 shadow-xs"
+                          title="View Player Dossier"
                         >
-                          <Printer className="w-4 h-4" />
-                        </a>
-                      )}
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        {reg.ticket_number && (
+                          <a 
+                            href={`/tickets/${reg.ticket_number}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center justify-center p-2 bg-[#FAF7F2] text-stone-600 hover:bg-stone-800 hover:text-white rounded-lg transition-colors border border-stone-200 shadow-xs"
+                            title="View/Print Ticket"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -506,6 +587,239 @@ export default function AdminRegistrations() {
           )}
         </div>
       </div>
+
+      {/* PLAYER DOSSIER FULL DETAILS MODAL */}
+      {selectedPlayer && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl border border-stone-200 max-w-2xl w-full overflow-hidden my-8">
+            {/* Header */}
+            <div className="bg-[#FAF7F2] border-b border-[#6B4A34]/15 p-5 flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B4A34] bg-[#6B4A34]/10 px-2 py-0.5 rounded">
+                    Player Dossier
+                  </span>
+                  {selectedPlayer.ticket_number && (
+                    <span className="font-mono text-[11px] font-bold text-stone-600">
+                      TK: {selectedPlayer.ticket_number}
+                    </span>
+                  )}
+                </div>
+                <h3 className="font-serif text-xl font-bold text-[#232320]">{selectedPlayer.player_name}</h3>
+              </div>
+              <button
+                onClick={() => setSelectedPlayer(null)}
+                className="p-1.5 rounded-lg text-stone-400 hover:text-[#232320] hover:bg-stone-200/60 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body Content */}
+            <div className="p-6 space-y-5 text-xs font-sans max-h-[75vh] overflow-y-auto">
+              {/* Key Badges */}
+              <div className="flex flex-wrap gap-2 items-center justify-between p-3.5 bg-[#FAF7F2]/70 rounded-xl border border-stone-200/70">
+                <div className="flex items-center space-x-2">
+                  <span className="font-bold text-stone-600">Payment:</span>
+                  {getStatusBadge(selectedPlayer.payment_status)}
+                  <span className="font-mono font-bold text-[#232320]">
+                    {selectedPlayer.amount === 0 ? 'FREE (KES 0)' : `KES ${Number(selectedPlayer.amount).toLocaleString()}`}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="font-bold text-stone-600">Attendance:</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                    selectedPlayer.attendance_status === 'checked-in' ? 'bg-green-100 text-green-800' : 'bg-stone-100 text-stone-600'
+                  }`}>
+                    {selectedPlayer.attendance_status === 'checked-in' ? 'Checked In ✓' : 'Registered (Not checked in)'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Grid of details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Card 1: Player & Category */}
+                <div className="border border-stone-200 rounded-xl p-4 space-y-2.5 bg-white shadow-xs">
+                  <div className="flex items-center space-x-1.5 text-stone-900 font-bold border-b border-stone-100 pb-2">
+                    <User className="w-4 h-4 text-[#6B4A34]" />
+                    <span>Competitor Profile</span>
+                  </div>
+                  <div className="space-y-1.5 text-stone-600">
+                    <div className="flex justify-between">
+                      <span>Category / Section:</span>
+                      <span className="font-bold text-[#6B4A34] text-right">{selectedPlayer.category}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Calculated Age:</span>
+                      <span className="font-bold text-[#232320]">{getPlayerAge(selectedPlayer)} years</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Date of Birth:</span>
+                      <span className="font-mono font-medium text-[#232320]">{selectedPlayer.date_of_birth || 'Not recorded'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Gender:</span>
+                      <span className="font-medium text-[#232320]">{selectedPlayer.gender || '—'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>FIDE ID:</span>
+                      <span className="font-mono font-bold text-[#232320]">{selectedPlayer.fide_id || '00'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Country:</span>
+                      <span className="font-medium text-[#232320]">{selectedPlayer.country || 'Kenya'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 2: Delegation & Safeguarding */}
+                <div className="border border-stone-200 rounded-xl p-4 space-y-2.5 bg-white shadow-xs">
+                  <div className="flex items-center space-x-1.5 text-stone-900 font-bold border-b border-stone-100 pb-2">
+                    <School className="w-4 h-4 text-[#6B4A34]" />
+                    <span>Delegation & Guardian</span>
+                  </div>
+                  <div className="space-y-1.5 text-stone-600">
+                    <div className="flex justify-between">
+                      <span>School / Club:</span>
+                      <span className="font-bold text-[#232320] text-right">{selectedPlayer.school || 'Individual Entry'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Accompanying / Patron:</span>
+                      <span className="font-medium text-[#232320] text-right">{selectedPlayer.accompanying_person || 'Direct / Self'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Parental & Rules Consent:</span>
+                      <span className="font-bold text-emerald-700">
+                        {selectedPlayer.consent_given ? 'Verified ✓' : 'Not recorded'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tournament Event:</span>
+                      <span className="font-medium text-[#232320] text-right">
+                        {Array.isArray(selectedPlayer.tournaments)
+                          ? selectedPlayer.tournaments[0]?.name
+                          : (selectedPlayer.tournaments?.name || 'Tournament')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 3: Contact Coordinates */}
+                <div className="border border-stone-200 rounded-xl p-4 space-y-2.5 bg-white shadow-xs">
+                  <div className="flex items-center space-x-1.5 text-stone-900 font-bold border-b border-stone-100 pb-2">
+                    <Phone className="w-4 h-4 text-[#6B4A34]" />
+                    <span>Contact Coordinates</span>
+                  </div>
+                  <div className="space-y-2 text-stone-600">
+                    <div>
+                      <span className="text-[10px] text-stone-400 uppercase font-bold block">Phone Number</span>
+                      <div className="flex items-center justify-between mt-0.5">
+                        <a href={`tel:${selectedPlayer.phone_number}`} className="font-mono font-bold text-[#6B4A34] hover:underline">
+                          {selectedPlayer.phone_number}
+                        </a>
+                        <button 
+                          onClick={() => navigator.clipboard.writeText(selectedPlayer.phone_number)}
+                          className="p-1 text-stone-400 hover:text-stone-700 rounded"
+                          title="Copy Phone"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-stone-400 uppercase font-bold block">Email Address</span>
+                      <div className="flex items-center justify-between mt-0.5">
+                        <a href={`mailto:${selectedPlayer.email}`} className="font-mono text-[#232320] hover:underline truncate max-w-[200px]">
+                          {selectedPlayer.email || '—'}
+                        </a>
+                        {selectedPlayer.email && (
+                          <button 
+                            onClick={() => navigator.clipboard.writeText(selectedPlayer.email || '')}
+                            className="p-1 text-stone-400 hover:text-stone-700 rounded"
+                            title="Copy Email"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 4: Financial & Audit Trail */}
+                <div className="border border-stone-200 rounded-xl p-4 space-y-2.5 bg-white shadow-xs">
+                  <div className="flex items-center space-x-1.5 text-stone-900 font-bold border-b border-stone-100 pb-2">
+                    <ShieldCheck className="w-4 h-4 text-[#6B4A34]" />
+                    <span>Financial Audit Trail</span>
+                  </div>
+                  <div className="space-y-1.5 text-stone-600">
+                    <div className="flex justify-between">
+                      <span>M-Pesa Receipt:</span>
+                      <span className="font-mono font-bold text-[#232320]">{selectedPlayer.mpesa_receipt || 'None / Free'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Checkout Request ID:</span>
+                      <span className="font-mono text-[10px] text-stone-500 truncate max-w-[150px]" title={selectedPlayer.checkout_request_id || ''}>
+                        {selectedPlayer.checkout_request_id || '—'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Registration Date:</span>
+                      <span className="text-[11px] text-[#232320]">
+                        {selectedPlayer.created_at ? new Date(selectedPlayer.created_at).toLocaleString() : '—'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="bg-[#FAF7F2] border-t border-[#6B4A34]/15 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => {
+                    toggleCheckIn(selectedPlayer.id, selectedPlayer.attendance_status || 'registered', selectedPlayer.payment_status);
+                    setSelectedPlayer(prev => prev ? ({
+                      ...prev,
+                      attendance_status: prev.attendance_status === 'checked-in' ? 'registered' : 'checked-in'
+                    }) : null);
+                  }}
+                  disabled={selectedPlayer.payment_status !== 'completed' && selectedPlayer.attendance_status !== 'checked-in'}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs ${
+                    selectedPlayer.attendance_status === 'checked-in'
+                      ? 'bg-green-100 text-green-900 border border-green-300 hover:bg-green-200'
+                      : selectedPlayer.payment_status !== 'completed'
+                        ? 'bg-stone-200 text-stone-400 cursor-not-allowed opacity-60'
+                        : 'bg-[#6B4A34] text-white hover:bg-[#573b29]'
+                  }`}
+                >
+                  {selectedPlayer.attendance_status === 'checked-in' ? 'Revoke Check-In' : 'Check In Player ✓'}
+                </button>
+
+                {selectedPlayer.ticket_number && (
+                  <a
+                    href={`/tickets/${selectedPlayer.ticket_number}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white border border-stone-200 text-stone-700 hover:bg-stone-50 text-xs font-bold shadow-xs transition-colors"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-[#6B4A34]" />
+                    <span>Print Ticket Pass</span>
+                  </a>
+                )}
+              </div>
+
+              <button
+                onClick={() => setSelectedPlayer(null)}
+                className="px-4 py-1.5 rounded-lg bg-[#232320] hover:bg-stone-800 text-white text-xs font-bold transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

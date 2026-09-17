@@ -27,7 +27,7 @@ export const sendRegistrationConfirmation = async (
   email: string,
   details: { playerName: string; tournamentName: string; amount: number; category: string; ticketNumber: string }
 ): Promise<void> => {
-  const subject = `Registration Confirmed: ${details.tournamentName} 🎫`;
+  const subject = `Registration Confirmed: ${details.tournamentName}`;
   const ticketUrl = `https://jumuiyachess.org/tickets/${details.ticketNumber}`;
   
   const html = `
@@ -90,6 +90,108 @@ export const sendRegistrationConfirmation = async (
   console.log(`[EMAIL MOCK] Registration confirmation to ${email}:\nSubject: ${subject}`);
 };
 
+export const sendBulkRegistrationConfirmation = async (
+  email: string,
+  details: {
+    schoolName: string;
+    patronName: string;
+    tournamentName: string;
+    totalAmount: number;
+    studentsCount: number;
+    checkoutRequestId: string;
+    mpesaReceipt?: string;
+    students: { name: string; category: string; ticketNumber: string }[];
+  }
+): Promise<void> => {
+  const subject = `Bulk Registration Confirmed: ${details.schoolName} - ${details.tournamentName}`;
+  const rosterUrl = `https://jumuiyachess.org/tickets/batch/${details.checkoutRequestId}`;
+
+  const studentRowsHtml = details.students.map((s, idx) => `
+    <tr>
+      <td style="padding: 8px 10px; border-bottom: 1px solid #e5e7eb; font-size: 13px;">${idx + 1}</td>
+      <td style="padding: 8px 10px; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 13px;">${s.name}</td>
+      <td style="padding: 8px 10px; border-bottom: 1px solid #e5e7eb; font-size: 13px;">${s.category}</td>
+      <td style="padding: 8px 10px; border-bottom: 1px solid #e5e7eb; font-family: monospace; font-size: 13px; font-weight: bold; color: #6B4A34;">${s.ticketNumber}</td>
+    </tr>
+  `).join('');
+
+  const html = `
+    <div style="font-family: sans-serif; max-width: 650px; margin: auto; padding: 30px; border: 1px solid #e5e7eb; border-radius: 8px; color: #111827; background-color: #ffffff;">
+      <div style="text-align: center; margin-bottom: 25px;">
+        <h1 style="color: #6B4A34; margin: 0; font-size: 26px;">Jumuiya Chess</h1>
+        <p style="color: #4b5563; font-size: 13px; text-transform: uppercase; letter-spacing: 2px;">Official School & Group Registration Pass</p>
+      </div>
+
+      <p style="font-size: 16px;">Hello <strong>${details.patronName}</strong> (${details.schoolName}),</p>
+      <p style="font-size: 15px; line-height: 1.5;">Your bulk registration for <strong>${details.tournamentName}</strong> has been successfully confirmed!</p>
+
+      <div style="background-color: #FAF7F2; padding: 18px; border-radius: 8px; margin: 25px 0; border: 1px solid #e5e7eb;">
+        <p style="margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: #6B4A34; font-weight: bold;">Group Order Summary</p>
+        <table style="width: 100%; font-size: 14px;">
+          <tr>
+            <td style="padding: 4px 0; color: #4b5563;">School / Academy:</td>
+            <td style="padding: 4px 0; font-weight: bold; text-align: right;">${details.schoolName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #4b5563;">Total Students:</td>
+            <td style="padding: 4px 0; font-weight: bold; text-align: right;">${details.studentsCount}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #4b5563;">Total Paid:</td>
+            <td style="padding: 4px 0; font-weight: bold; text-align: right;">KES ${details.totalAmount.toLocaleString()}</td>
+          </tr>
+          ${details.mpesaReceipt ? `
+          <tr>
+            <td style="padding: 4px 0; color: #4b5563;">M-Pesa Receipt:</td>
+            <td style="padding: 4px 0; font-weight: bold; text-align: right; font-family: monospace;">${details.mpesaReceipt}</td>
+          </tr>` : ''}
+        </table>
+      </div>
+
+      <h3 style="font-size: 15px; margin: 25px 0 10px 0; color: #232320;">Registered Student Roster</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+        <thead>
+          <tr style="background-color: #f3f4f6; text-align: left;">
+            <th style="padding: 8px 10px; font-size: 12px; color: #4b5563;">#</th>
+            <th style="padding: 8px 10px; font-size: 12px; color: #4b5563;">Player Name</th>
+            <th style="padding: 8px 10px; font-size: 12px; color: #4b5563;">Category</th>
+            <th style="padding: 8px 10px; font-size: 12px; color: #4b5563;">Ticket Code</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${studentRowsHtml}
+        </tbody>
+      </table>
+
+      <div style="text-align: center; margin: 35px 0;">
+        <a href="${rosterUrl}" style="background-color: #232320; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; display: inline-block;">
+          Download Printable Group Roster
+        </a>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
+      <p style="font-size: 12px; color: #9ca3af; text-align: center;">This is an automated confirmation from Jumuiya Chess.</p>
+    </div>
+  `;
+
+  if (resend) {
+    try {
+      await resend.emails.send({
+        from: RESEND_FROM_EMAIL,
+        to: email,
+        subject,
+        html,
+      });
+      console.log(`[Resend] Bulk registration confirmation sent to ${email}`);
+      return;
+    } catch (error) {
+      console.error('[Resend Error] Failed to send bulk registration email:', error);
+    }
+  }
+
+  console.log(`[EMAIL MOCK] Bulk registration confirmation to ${email}:\nSubject: ${subject}`);
+};
+
 export const notifyAdminOfRegistration = async (
   details: { 
     playerName: string; 
@@ -106,7 +208,7 @@ export const notifyAdminOfRegistration = async (
 ): Promise<void> => {
   const recipients = await getAdminEmails();
 
-  const subject = `🎫 INTERNAL ALERT: New Registration - ${details.tournamentName}`;
+  const subject = `INTERNAL ALERT: New Registration - ${details.tournamentName}`;
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #e5e7eb; border-radius: 8px; color: #111827; background-color: #ffffff;">
       <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #6B4A34; padding-bottom: 20px;">
@@ -539,15 +641,15 @@ export const sendDeliveryStatusUpdate = async (
 
   switch(details.status) {
     case 'processing':
-      statusTitle = 'Your Order is Being Processed ⚙️';
+      statusTitle = 'Your Order is Being Processed';
       statusMessage = `Great news! We are currently processing your order <strong>(${details.receipt})</strong>.`;
       break;
     case 'shipped':
-      statusTitle = 'Your Order Has Shipped! 🚀';
+      statusTitle = 'Your Order Has Shipped!';
       statusMessage = `Your order <strong>(${details.receipt})</strong> has been marked as shipped and is currently on its way to you.`;
       break;
     case 'delivered':
-      statusTitle = 'Your Order Has Been Delivered! 🎉';
+      statusTitle = 'Your Order Has Been Delivered!';
       statusMessage = `Your order <strong>(${details.receipt})</strong> has been successfully delivered. We hope you enjoy it!`;
       break;
   }

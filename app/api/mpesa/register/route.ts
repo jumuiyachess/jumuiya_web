@@ -26,7 +26,19 @@ export async function POST(request: NextRequest) {
       amount 
     } = body;
 
-    const parsedAge = age !== undefined && age !== null ? parseInt(age.toString()) : 0;
+    let parsedAge = age !== undefined && age !== null ? parseInt(age.toString(), 10) : 0;
+    if ((!parsedAge || isNaN(parsedAge) || parsedAge === 0) && dob) {
+      const birthDate = new Date(dob);
+      if (!isNaN(birthDate.getTime())) {
+        const today = new Date();
+        let computed = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          computed--;
+        }
+        parsedAge = computed >= 0 ? computed : 0;
+      }
+    }
     const parsedAmount = amount !== undefined && amount !== null ? parseFloat(amount.toString()) : 0;
     
     // First, let's establish first_name and last_name
